@@ -4,14 +4,16 @@ import { validateUser } from '../middleware/validate';
 
 const router = express.Router();
 
-router.post('/users/auth/register', createUser);
-router.put('/users/:uniqueId/update', validateUser, updateUser);
-router.get('/users/:uniqueId', validateUser, getUser);
-router.delete('/users/:uniqueId', validateUser, deleteUser);
-
-//Testing route to check if the endpoint is working
-router.get('/users/helloworld', function (req, res, next) {
+router.get('/helloworld', function (req, res, next) {
     res.send('hello world');
 });
+
+router.post('/users/register', createUser);
+router.put('/users/:userId/update', validateUser, updateUser);
+router.get('/users/:userId', validateUser, getUser);
+router.delete('/users/:userId/delete', validateUser, deleteUser);
+
+//Testing route to check if the endpoint is working
+
 
 export default router;

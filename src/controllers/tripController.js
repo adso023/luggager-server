@@ -12,8 +12,8 @@ import { isEmpty, dateIsPast } from '../helpers/validations';
  * @returns {object} reflection object
  */
 const addNewTrip = async (req, res) => {
-    const { name, origin, destination, date } = req.body;
-    const { uniqueId } = req.params;
+    const { tripId, name, origin, destination, date } = req.body;
+    const { userId } = req.params;
 
     if (isEmpty(name) || isEmpty(origin) || isEmpty(destination) || isEmpty(date)) {
         errorMessage.error = 'Name, origin, destination and date fields cannot be empty';
@@ -26,15 +26,17 @@ const addNewTrip = async (req, res) => {
     }
 
     const tripDate = moment(Date.parse(date));
-    const insertQuery = `INSERT INTO trips (user_id, trip_name, trip_from, trip_to, trip_date) VALUES (
-        $1, $2, $3, $4, $5
+    const insertQuery = `INSERT INTO trips 
+    (trip_id, user_id, name, origin, destination, date) VALUES (
+        $1, $2, $3, $4, $5, $6
     ) RETURNING *`;
     const values = [
-        uniqueId,
+        tripId,
+        userId,
         name,
         origin,
         destination,
-        tripDate
+        tripDate,
     ];
 
     try {
@@ -56,9 +58,9 @@ const addNewTrip = async (req, res) => {
  * @returns {object} reflection object
  */
 const getAllTrips = async (req, res) => {
-    const { uniqueId } = req.params;
+    const { userId } = req.params;
     const fetchQuery = `SELECT * FROM trips WHERE user_id=$1`;
-    const values = [uniqueId];
+    const values = [userId];
 
     try {
         const { rows, rowCount } = await pool.query(fetchQuery, values);
@@ -84,9 +86,9 @@ const getAllTrips = async (req, res) => {
  * @returns {object} reflection object
  */
 const getSpecificTrip = async (req, res) => {
-    const { tripId, uniqueId } = req.params;
+    const { tripId, userId } = req.params;
     const fetchQuery = `SELECT * FROM trips WHERE id=$1 AND user_id = $2`;
-    const values = [tripId, uniqueId];
+    const values = [tripId, userId];
 
     try {
         const { rows, rowCount } = await pool.query(fetchQuery, values);
@@ -111,7 +113,7 @@ const getSpecificTrip = async (req, res) => {
  * @returns {object} reflection object
  */
 const updateTrip = async (req, res) => {
-    const { uniqueId, tripId } = req.params;
+    const { userId, tripId } = req.params;
     const { name, origin, destination, completed, date } = req.body;
 
     if (isEmpty(name) || isEmpty(origin) || isEmpty(destination) || isEmpty(date)) {
@@ -127,9 +129,9 @@ const updateTrip = async (req, res) => {
     const tripDate = moment(Date.parse(date));
 
     const updateQuery = `UPDATE trips 
-    SET trip_name=$1, trip_from=$2, trip_to=$3, completed=$4, trip_date=$5 
+    SET name=$1, origin=$2, destination=$3, completed=$4, date=$5 
     WHERE id=$6 AND user_id=$7 RETURNING *`;
-    const values = [name, origin, destination, completed, tripDate, tripId, uniqueId];
+    const values = [name, origin, destination, completed, tripDate, tripId, userId];
 
     try {
         const { rows } = await pool.query(updateQuery, values);

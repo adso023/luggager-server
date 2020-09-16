@@ -9,10 +9,10 @@ import { errorMessage, status, successMessage } from '../helpers/status';
  * @returns {object | void} response object 
  */
 const validateUser = async (req, res, next) => {
-    const { uniqueId } = req.params;
+    const { userId } = req.params;
 
-    const findQuery = `SELECT id FROM users WHERE unique_id=$1`;
-    const values = [uniqueId];
+    const findQuery = `SELECT id FROM users WHERE user_id=$1`;
+    const values = [userId];
     try {
         const { rowCount } = await pool.query(findQuery, values);
         if (rowCount === 0) {
@@ -37,9 +37,9 @@ const validateUser = async (req, res, next) => {
  * @returns {object | void} response object
  */
 const validateTrip = async (req, res, next) => {
-    const { uniqueId, tripId } = req.params;
+    const { userId, tripId } = req.params;
     const findQuery = `SELECT id FROM trips WHERE id=$1 AND user_id=$2`;
-    const values = [tripId, uniqueId];
+    const values = [tripId, userId];
     try {
         const { rowCount, rows } = await pool.query(findQuery, values);
         if (rowCount === 0) {

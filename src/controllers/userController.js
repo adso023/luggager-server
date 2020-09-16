@@ -12,7 +12,7 @@ import pool from '../database/pool';
  * @returns {object} reflection object
  */
 const createUser = async (req, res) => {
-    const { email, first_name, last_name, unique_id } = req.body;
+    const { email, first_name, last_name, user_id } = req.body;
     if (isEmpty(email) || isEmpty(first_name) || isEmpty(last_name)) {
         errorMessage.error = 'Email, password, first name and last name field cannot be empty';
         return res.status(status.bad).send(errorMessage);
@@ -24,10 +24,10 @@ const createUser = async (req, res) => {
     }
 
     const createNewUser = `INSERT INTO users (
-        first_name, last_name, email, created_on, unique_id
+        user_id, first_name, last_name, email, created_on
     ) VALUES ($1, $2, $3, $4, $5) RETURNING *`;
     const current = moment(new Date());
-    const values = [first_name, last_name, email, current, unique_id];
+    const values = [user_id, first_name, last_name, email, current];
 
     try {
         const { rows } = await pool.query(createNewUser, values)
@@ -53,10 +53,10 @@ const createUser = async (req, res) => {
  * @returns {object} reflection object
  */
 const getUser = async (req, res) => {
-    const { uniqueId } = req.params;
+    const { userId } = req.params;
 
-    const fetchQuery = `SELECT * FROM users WHERE unique_id = $1`;
-    const values = [uniqueId];
+    const fetchQuery = `SELECT * FROM users WHERE user_id = $1`;
+    const values = [userId];
     try {
         const { rows, rowCount } = await pool.query(fetchQuery, values);
         if (rowCount === 0) {
@@ -67,9 +67,10 @@ const getUser = async (req, res) => {
         successMessage.data = response;
         return res.status(status.success).send(successMessage);
     } catch (err) {
-
+        console.log(err);
+        errorMessage.error = err;
+        return res.status(status.bad).send(errorMessage);
     }
-    return res.status(status.nocontent).send('No content yet');
 }
 
 /**
@@ -80,7 +81,7 @@ const getUser = async (req, res) => {
  */
 const updateUser = async (req, res) => {
     const { email, first_name, last_name } = req.body;
-    const { uniqueId } = req.params;
+    const { userId } = req.params;
     if (isEmpty(email)) {
         errorMessage.error = 'Email field cannot be empty';
         return res.status(status.bad).send(errorMessage);
@@ -91,8 +92,10 @@ const updateUser = async (req, res) => {
         return res.status(status.bad).send(errorMessage);
     }
 
-    const updateQuery = `UPDATE users SET email = $1, first_name = $2, last_name = $3 WHERE unique_id = $4 RETURNING *`;
-    const values = [email, first_name, last_name, uniqueId];
+    const updateQuery = `UPDATE users 
+        SET email = $1, first_name = $2, last_name = $3 
+        WHERE user_id = $4 RETURNING *`;
+    const values = [email, first_name, last_name, userId];
 
     try {
         const { rows } = await pool.query(updateQuery, values);
@@ -117,10 +120,10 @@ const updateUser = async (req, res) => {
  * @returns {object} reflection object
  */
 const deleteUser = async (req, res) => {
-    const { uniqueId } = req.params;
+    const { userId } = req.params;
 
-    const deleteQuery = `DELETE FROM users WHERE unique_id=$1 RETURNING unique_id, id`;
-    const values = [uniqueId];
+    const deleteQuery = `DELETE FROM users WHERE user_id=$1 RETURNING user_id, id`;
+    const values = [userId];
 
     try {
         const { rows } = await pool.query(deleteQuery, values);
@@ -129,6 +132,7 @@ const deleteUser = async (req, res) => {
         successMessage.data.msg = 'Row deleted successfully';
         return res.status(status.success).send(successMessage);
     } catch (err) {
+        console.log(err);
         errorMessage.error = 'Operation was not successful';
         return res.status(status.bad).send(errorMessage);
     }
