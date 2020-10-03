@@ -38,7 +38,7 @@ const empty = (input) => {
 
 /**
  * Date is past validation
- * @param {Date} date
+ * @param {number} date
  * @returns {boolean} True or False
  */
 const dateIsPast = (date) => {
