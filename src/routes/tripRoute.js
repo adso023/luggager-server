@@ -1,5 +1,5 @@
 import express from 'express';
-import { addNewTrip, getAllTrips, getSpecificTrip, updateTrip } from '../controllers/tripController';
+import {addNewTrip, deleteTrip, getAllTrips, getSpecificTrip, updateTrip} from '../controllers/tripController';
 import { deleteUser } from '../controllers/userController';
 import { validateUser, validateTrip } from '../middleware/validate';
 const router = express.Router();
@@ -9,14 +9,13 @@ const router = express.Router();
  * Query: userId (cannot be null and should be a valid user id in the database)
  * Middleware to be added to validate the user
  */
-router.get('/trips', getAllTrips);
+router.get('/trips/:userId', getAllTrips);
 
 /**
  * Get specific trips
- * Query: userId (cannot be null and valid in the database)
- * Param: tripId (cannot be null and valid in the database)
+ * Param: tripId and userId (cannot be null and valid in the database)
  */
-router.get('/trips/:tripId', getSpecificTrip);
+router.get('/trips/:userId/trip/:tripId', getSpecificTrip);
 
 /**
  * Create new trip
@@ -30,12 +29,12 @@ router.post('/trips/:userId/create', addNewTrip);
  * Body: {name, origin, destination, tripDate}
  * Param: userId and tripId
  */
-router.put('/trips/:userId/update/:tripId', updateTrip);
+router.put('/trips/:userId/trip/:tripId', updateTrip);
 
 /**
  * Delete a specific trip
  * Param: userId and tripId
  */
-router.delete('/trips/:userId/delete/:tripId', deleteUser);
+router.delete('/trips/:userId/trip/:tripId', deleteTrip);
 
 export default router;
