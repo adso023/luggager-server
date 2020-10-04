@@ -15,6 +15,11 @@ const addNewTrip = async (req, res) => {
     const {name, origin, destination, tripDate} = req.body;
     const {userId} = req.params;
 
+    if(isEmpty(name) || isEmpty(origin) || isEmpty(destination) || isEmpty(tripDate)) {
+        errorMessage.msg = 'One or more fields are empty';
+        return res.status(status.error).send(errorMessage);
+    }
+
     if (isNaN(Date.parse(tripDate)) || dateIsPast(Date.parse(tripDate))) {
         errorMessage.msg = 'Invalid Date - either not a date or date given is in the past';
         return res.status(status.bad).send(errorMessage);
@@ -99,6 +104,17 @@ const getSpecificTrip = async (req, res) => {
 const updateTrip = async (req, res) => {
     const {name, origin, destination, tripDate} = req.body;
     const {userId, tripId} = req.params;
+
+    if(isEmpty(name) || isEmpty(origin) || isEmpty(destination) || isEmpty(tripDate)) {
+        errorMessage.msg = 'One or more fields are empty';
+        return res.status(status.error).send(errorMessage);
+    }
+
+    if (isNaN(Date.parse(tripDate)) || dateIsPast(Date.parse(tripDate))) {
+        errorMessage.msg = 'Invalid Date - either not a date or date given is in the past';
+        return res.status(status.bad).send(errorMessage);
+    }
+
     const momentDate = moment(Date.parse(tripDate));
     const query = `UPDATE trips 
     SET name=$1, origin=$2, destination=$3, tripDate=$4 
