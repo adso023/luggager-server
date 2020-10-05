@@ -3,6 +3,7 @@ import cors from 'cors';
 import env from './env';
 import userRoute from './src/routes/userRoute';
 import tripRoute from './src/routes/tripRoute';
+import bagRoute from './src/routes/bagRoute';
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(express.json());
 
 app.use('/', userRoute);
 app.use('/', tripRoute);
+app.use('/', bagRoute);
 
 app.listen(env.port).on('listening', () => {
     console.log(`🚀 are live on ${env.port}`);

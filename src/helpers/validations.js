@@ -45,6 +45,23 @@ const dateIsPast = (date) => {
     return moment(date).isBefore(moment.now());
 }
 
+/**
+ *
+ * @param {number} type
+ */
+const isValidLuggageTypes = (type) => {
+    return validLuggageTypes[type] !== null;
+}
+
+const validLuggageTypes = {
+    WheeledDuffel: 0,
+    WheeledLuggage: 1,
+    CarryOnLuggage: 2,
+    WheeledBackpacks: 3,
+    BagsSleeves: 4,
+    DuffelBags: 5,
+}
+
 export {
     empty,
     isEmpty,
