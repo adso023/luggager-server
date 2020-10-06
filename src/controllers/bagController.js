@@ -38,7 +38,19 @@ export const addBag = async function (req, res) {
  * @param {Response} res
  * @returns {object} reflection object
  */
-export const getBags = async function(req, res) {}
+export const getBags = async function(req, res) {
+    const {tripId} = req.params;
+    const query = `SELECT * FROM luggage WHERE tripId=${tripId}`;
+
+    try{
+        const {rows} = await pool.query(query);
+        successMessage.data = rows;
+        return res.status(status.success).send(successMessage);
+    }catch(error){
+        errorMessage.msg = error;
+        return res.status(status.error).send(errorMessage);
+    }
+}
 
 /**
  * Get specific bag
@@ -46,7 +58,18 @@ export const getBags = async function(req, res) {}
  * @param {Response} res
  * @returns {object} reflection object
  */
-export const getBag = async function(req, res) {}
+export const getBag = async function(req, res) {
+    const {tripId, bagId} = req.params;
+    const query = `SELECT * FROM luggage WHERE id=${bagId} AND tripId=${tripId}`;
+    try{
+        const {rows} = await pool.query(query);
+        successMessage.data = rows[0];
+        return res.status(status.success).send(successMessage);
+    }catch(error){
+        errorMessage.msg = error;
+        return res.status(status.error).send(errorMessage);
+    }
+}
 
 /**
  * update a bag information
@@ -54,7 +77,22 @@ export const getBag = async function(req, res) {}
  * @param {Response} res
  * @returns {object} reflection object
  */
-export const updateBag = async function(req, res) {}
+export const updateBag = async function(req, res) {
+    const {description, type} = req.body;
+    const {tripId, bagId} = req.params;
+
+    const query = `UPDATE luggage SET description=$1, type=$2 WHERE id=${bagId} AND tripId=${tripId}`;
+    const values = [description, type];
+
+    try{
+        const {rows} = await pool.query(query, values);
+        successMessage.data = rows[0];
+        return res.status(status.success).send(successMessage);
+    }catch(error){
+        errorMessage.msg = error;
+        return res.status(status.error).send(errorMessage);
+    }
+}
 
 /**
  * delete a bag
@@ -62,4 +100,16 @@ export const updateBag = async function(req, res) {}
  * @param {Response} res
  * @returns {object} reflection object
  */
-export const deleteBag = async function(req, res) {}
+export const deleteBag = async function(req, res) {
+    const {tripId, bagId} = req.params;
+    const query = `DELETE FROM luggage WHERE id=${bagId} AND tripId=${tripId} RETURNING id, tripId`;
+
+    try{
+        const {rows} = await pool.query(query);
+        successMessage.data = rows[0];
+        return res.status(status.success).send(successMessage);
+    }catch(error){
+        errorMessage.msg = error;
+        return res.status(status.error).send(errorMessage);
+    }
+}

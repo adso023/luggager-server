@@ -1,6 +1,6 @@
 import express from 'express';
 import { validateTrip, validateUser } from '../middleware/validate';
-import {addBag} from "../controllers/bagController";
+import {addBag, deleteBag, getBag, getBags, updateBag} from "../controllers/bagController";
 const router = express.Router();
 
 /**
@@ -8,10 +8,31 @@ const router = express.Router();
  * Body: {description, type}
  * Params: {userId, tripId}
  */
-router.get('/luggage/:userId/:tripId/create', addBag);
-router.get('/:uniqueId/:tripId/bags/:bagId');
-router.post('/:uniqueId/:tripId/bags/create');
-router.put('/:uniqueId/:tripId/bags/:bagId');
-router.delete('/:uniqueId/:tripId/bags/:bagId');
+router.post('/luggage/:userId/:tripId/create', addBag);
+
+/**
+ * Get all bags pertaining to a user and their trip
+ * Params: {userId, tripId}
+ */
+router.get('/luggage/:userId/:tripId/bags', getBags);
+
+/**
+ * Get specific bag
+ * Params: {userId, tripId, bagId}
+ */
+router.get('/luggage/:userId/:tripId/bags/:bagId', getBag);
+
+/**
+ * Update contents of luggage item
+ * Body: {description, type}
+ * Params: {userId, tripId, bagId}
+ */
+router.put('/luggage/:userId/:tripId/bags/:bagId', updateBag);
+
+/**
+ * Delete luggage item
+ * Params: {userId, tripId, bagId}
+ */
+router.delete('/luggage/:userId/:tripId/bags/:bagId', deleteBag);
 
 export default router;
