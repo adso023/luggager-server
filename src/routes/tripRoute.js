@@ -1,6 +1,5 @@
 import express from 'express';
 import {addNewTrip, deleteTrip, getAllTrips, getSpecificTrip, updateTrip} from '../controllers/tripController';
-import { deleteUser } from '../controllers/userController';
 import { validateUser, validateTrip } from '../middleware/validate';
 const router = express.Router();
 
