@@ -50,7 +50,22 @@ export const getItem = async function(req, res) {
  * @param {Response} res
  * @returns {object} reflection object
  */
-export const createItem = async function(req, res) {}
+export const createItem = async function(req, res) {
+    const {bagId} = req.body;
+    const {description, type} = req.params;
+    const query = 'INSERT INTO items (luggageId, description, type)' +
+        'VALUES ($1, $2, $3) RETURNING id, luggageId';
+    const values = [bagId, description, type];
+
+    try{
+        const {rows} = await pool.query(query, values);
+        successMessage.data = rows[0];
+        return res.status(status.success).send(successMessage);
+    }catch(error){
+        errorMessage.msg = error;
+        return res.status(status.error).send(errorMessage);
+    }
+}
 
 /**
  * Get all items function

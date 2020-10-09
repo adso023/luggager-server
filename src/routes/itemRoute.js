@@ -1,4 +1,5 @@
 import express from 'express';
+import {createItem} from "../controllers/itemController";
 const router = express.Router();
 
 /**
@@ -18,7 +19,7 @@ router.get('/items/:userId/:tripId/:bagId/items/:itemId');
  * Param: {userId, tripId, bagId}
  * Body: {description, type}
  */
-router.post('/items/:userId/:tripId/:bagId/items');
+router.post('/items/:userId/:tripId/:bagId/items', createItem);
 
 /**
  * Update item in bag
