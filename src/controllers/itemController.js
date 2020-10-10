@@ -73,7 +73,22 @@ export const createItem = async function(req, res) {
  * @param {Response} res
  * @returns {object} reflection object
  */
-export const updateItem = async function(req, res) {}
+export const updateItem = async function(req, res) {
+    const {description, type} = req.params;
+    const {bagId, itemId} = req.body;
+
+    const query = 'UPDATE items SET description=$1, type=$2 WHERE luggageId=$3 AND id=$4';
+    const values = [description, type, bagId, itemId];
+
+    try{
+        const {rows} = await pool.query(query, values);
+        successMessage.data = rows[0];
+        return res.status(status.success).send(successMessage);
+    }catch(error){
+        errorMessage.msg = error;
+        return res.status(status.error).send(errorMessage);
+    }
+}
 
 /**
  * Get all items function

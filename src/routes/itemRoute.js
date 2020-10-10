@@ -1,5 +1,5 @@
 import express from 'express';
-import {createItem} from "../controllers/itemController";
+import {createItem, updateItem} from "../controllers/itemController";
 const router = express.Router();
 
 /**
@@ -26,7 +26,7 @@ router.post('/items/:userId/:tripId/:bagId/items', createItem);
  * Param: {userId, tripId, bagId, itemId}
  * Body: {description, type}
  */
-router.put('/items/:userId/:tripId/:bagId/items/:itemId');
+router.put('/items/:userId/:tripId/:bagId/items/:itemId', updateItem);
 
 /**
  * Delete item from bag
