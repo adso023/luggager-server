@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "devstart": "nodemon --watch . --exec babel-node -- server",
-    "start": "node server.js"
+    "start": "babel-node server.js"
   },
   "keywords": [],
   "author": "Adrian D'Souza <dsouzaadrian24@gmail.com>",
