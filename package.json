@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --watch . --exec babel-node -- server"
+    "devstart": "nodemon --watch . --exec babel-node -- server",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "Adrian D'Souza <dsouzaadrian24@gmail.com>",
