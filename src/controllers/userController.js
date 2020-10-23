@@ -1,5 +1,4 @@
 import {errorMessage, status, successMessage} from '../helpers/status';
-import {compare, hash} from 'bcrypt';
 import {isEmpty, isValidEmail} from '../helpers/validations';
 import pool from '../database/pool';
 
