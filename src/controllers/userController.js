@@ -1,5 +1,5 @@
 import {errorMessage, status, successMessage} from '../helpers/status';
-
+import {compare, hash} from 'bcrypt';
 import {isEmpty, isValidEmail} from '../helpers/validations';
 import pool from '../database/pool';
 
@@ -10,9 +10,9 @@ import pool from '../database/pool';
  * @returns {object} reflection object
  */
 const createUser = async (req, res) => {
-    const {firstName, lastName, email, password, username} = req.body;
+    const {uid, firstName, lastName, email, username} = req.body;
 
-    if(isEmpty(firstName) || isEmpty(lastName) || isEmpty(email) || isEmpty(password) || isEmpty(username)) {
+    if(isEmpty(firstName) || isEmpty(lastName) || isEmpty(email) || isEmpty(username) || isEmpty(uid)) {
         errorMessage.msg = 'Single/Multiple fields are empty';
         return res.status(status.error).send(errorMessage);
     }
@@ -22,17 +22,20 @@ const createUser = async (req, res) => {
         return res.status(status.bad).send(errorMessage);
     }
 
-    const values = [firstName, lastName, email, password, username];
+    const values = [uid, firstName, lastName, email, username];
 
-    const query = 'INSERT INTO users (firstname, lastname, email, password, username) VALUES ($1,$2,$3,$4,$5) RETURNING id';
+    const query = 'INSERT INTO users ' +
+        '(uid, firstname, lastname, email, username) VALUES ' +
+        '($1,$2,$3,$4,$5) RETURNING uid';
 
     try {
         const {rows} = await pool.query(query, values);
         successMessage.data = rows[0];
         return res.status(status.created).send(successMessage);
     }catch(error) {
+        console.log(error);
         if(error.routine === '_bt_check_unique') {
-            errorMessage.msg = 'Email already in use';
+            errorMessage.msg = error.detail;
             return res.status(status.conflict).send(errorMessage);
         }
 
@@ -48,9 +51,9 @@ const createUser = async (req, res) => {
  * @returns {object} reflection object
  */
 const getUser = async (req, res) => {
-    const {userId} = req.query;
+    const {userId} = req.params;
 
-    const query = 'SELECT * FROM users WHERE id=$1';
+    const query = 'SELECT * FROM users WHERE uid=$1';
     const values = [userId];
 
     try {
@@ -77,8 +80,8 @@ const getUser = async (req, res) => {
 const updateUser = async (req, res) => {
     const {firstName, lastName, email, username} = req.body;
     const {userId} = req.params;
-    const query = `UPDATE users SET firstname=$1, lastname=$2, email=$3, username=$4 WHERE id=${userId} RETURNING id`;
-    const values = [firstName, lastName, email, username];
+    const query = `UPDATE users SET firstname=$1, lastname=$2, email=$3, username=$4 WHERE uid=$5 RETURNING uid`;
+    const values = [firstName, lastName, email, username, userId];
 
     try {
         const {rows, rowCount} = await pool.query(query, values);
@@ -91,7 +94,7 @@ const updateUser = async (req, res) => {
         return res.status(status.success).send(successMessage);
     }catch(error) {
         if(error.routine === '_bt_check_unique') {
-            errorMessage.msg = 'Email already in use';
+            errorMessage.msg = error.detail;
             return res.status(status.conflict).send(errorMessage);
         }
 
@@ -107,12 +110,13 @@ const updateUser = async (req, res) => {
  * @returns {object} reflection object
  */
 const deleteUser = async (req, res) => {
-    const {userId} = req.query;
+    const {userId} = req.params;
 
-    const query = `DELETE FROM users WHERE id=${userId} RETURNING id`;
+    const query = `DELETE FROM users WHERE uid=$1 RETURNING uid`;
+    const values = [userId];
 
     try {
-        const {rows, rowCount} = await pool.query(query);
+        const {rows, rowCount} = await pool.query(query, values);
         if(rowCount === 0) {
             errorMessage.msg = 'Nothing was deleted';
             return res.status(status.bad).send(errorMessage);

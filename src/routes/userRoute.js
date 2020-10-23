@@ -11,7 +11,7 @@ router.get('/helloWorld', function (req, res, _) {
 
 /**
  * Post request to create a user
- * Body: {firstName, lastName, email, password, username}
+ * Body: {firstName, lastName, email, password, username, uid}
  */
 router.post('/user/register', createUser);
 
@@ -27,7 +27,7 @@ router.put('/user/:userId/update', updateUser);
  * Get request to get a specific user
  * Query ? userId (should be non null)
  */
-router.get('/user', getUser);
+router.get('/user/:userId', getUser);
 
 /**
  * Delete request to delete a specified user
