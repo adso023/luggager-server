@@ -1,6 +1,6 @@
 import express from 'express';
-import { createUser, deleteUser, getUser, updateUser } from '../controllers/userController';
-import { validateUser } from '../middleware/validate';
+import {createUser, deleteUser, getUser, login, updateUser} from '../controllers/userController';
+import {checkToken, validateUser} from '../middleware/validate';
 
 const router = express.Router();
 
@@ -8,6 +8,12 @@ const router = express.Router();
 router.get('/helloWorld', function (req, res, _) {
     res.send('hello world');
 });
+
+/**
+ * Post request to authenticate user
+ * Body: {email, username, password}
+ */
+router.post('/user/login', login);
 
 /**
  * Post request to create a user
@@ -18,21 +24,23 @@ router.post('/user/register', createUser);
 /**
  * Put request to update a user information
  * Note: Password should have a different route
+ * Headers: {Authorization: Bearer ******}
  * Body: {firstName?, lastName?, email?, username?}
  * Param: userId
  */
-router.put('/user/:userId/update', updateUser);
+router.put('/user/update', checkToken, updateUser);
 
 /**
  * Get request to get a specific user
- * Query ? userId (should be non null)
+ * Headers: {Authorization: Bearer ******}
+ * Param: userId (should be non null)
  */
-router.get('/user/:userId', getUser);
+router.get('/user', checkToken, getUser);
 
 /**
  * Delete request to delete a specified user
  */
-router.delete('/user/:userId/delete', deleteUser);
+router.delete('/user/delete', checkToken, deleteUser);
 
 
 export default router;

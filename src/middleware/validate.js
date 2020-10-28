@@ -1,62 +1,24 @@
-import pool from '../database/pool';
 import { errorMessage, status, successMessage } from '../helpers/status';
 
 /**
- * Validate that user id exists
+ * Check Bearer Token
  * @param {Request} req
  * @param {Response} res
- * @param {object} next
- * @returns {object | void} response object 
+ * @param next
  */
-const validateUser = async (req, res, next) => {
-    const { userId } = req.params;
+const checkToken = async (req, res, next) => {
+    const headers = req.headers['authorization'];
 
-    const findQuery = `SELECT id FROM users WHERE user_id=$1`;
-    const values = [userId];
-    try {
-        const { rowCount } = await pool.query(findQuery, values);
-        if (rowCount === 0) {
-            errorMessage.error = "User doesn't exist check your unique Id";
-            return res.status(status.unauthorized).send(errorMessage);
-        } else if (rowCount >= 2) {
-            errorMessage.error = 'Database error - multiple users with similar unique Id';
-            return res.status(status.unauthorized).send(errorMessage);
-        }
+    if(typeof headers === undefined) {
+        const [Bearer, jwt] = headers.split(' ');
+        req.token = jwt;
         next();
-    } catch (error) {
-        errorMessage.error = error;
-        return res.status(status.unauthorized).send(errorMessage);
-    }
-}
-
-/**
- * Validate that a trip exists
- * @param {Request} req
- * @param {Response} res
- * @param {object} next
- * @returns {object | void} response object
- */
-const validateTrip = async (req, res, next) => {
-    const { userId, tripId } = req.params;
-    const findQuery = `SELECT id FROM trips WHERE id=$1 AND user_id=$2`;
-    const values = [tripId, userId];
-    try {
-        const { rowCount, rows } = await pool.query(findQuery, values);
-        if (rowCount === 0) {
-            errorMessage.error = 'Trip not found';
-            return res.status(status.notfound).send(errorMessage);
-        } else if (rowCount >= 2) {
-            errorMessage.error = 'Multiple trip ids found';
-            return res.status(status.conflict).send(errorMessage);
-        }
-        next();
-    } catch (error) {
-        errorMessage.error = error;
-        return res.status(status.notfound).send(errorMessage);
+    } else {
+        errorMessage.msg = 'Invalid token - Unauthorized';
+        res.status(status.unauthorized).send(errorMessage);
     }
 }
 
 export {
-    validateUser,
-    validateTrip
+    checkToken
 };
