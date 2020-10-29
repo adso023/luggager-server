@@ -2,7 +2,7 @@ import {errorMessage, status, successMessage} from '../helpers/status';
 import {isEmpty, isValidEmail} from '../helpers/validations';
 import pool from '../database/pool';
 import {hash, compare} from 'bcrypt';
-import {findOneUserEmail, getUserByEmailUsername, insertUser} from '../database/dbQuery';
+import {getUserByVal, insertUser} from '../database/dbQuery';
 import {sign, verify} from 'jsonwebtoken';
 import environ from '../../env';
 
@@ -25,8 +25,8 @@ const createUser = async (req, res) => {
         return res.status(status.bad).send(errorMessage);
     }
 
-    if(!await findOneUserEmail([email], true)
-        || ! await findOneUserEmail([username], false)) {
+    if((await getUserByVal([email], 'email').rows) === undefined
+        || (await getUserByVal([username], 'username')).rows === undefined) {
         errorMessage.msg = "Duplicate user found";
         return res.status(status.bad).send(errorMessage);
     }
@@ -34,6 +34,7 @@ const createUser = async (req, res) => {
     const hashedPassword = await hash(password, 10);
     const values = [firstName, lastName, email, username, hashedPassword];
     const {rows, rowCount, error} = await insertUser(values);
+
     if(error) {
         errorMessage.msg = error;
         return res.status(status.error).send(errorMessage);
@@ -59,12 +60,18 @@ const createUser = async (req, res) => {
 const login = async (req, res) => {
     const {email, username, password} = req.body;
 
-    if(! await findOneUserEmail([(email) ? username : email], (!email))) {
+    if((await getUserByVal(
+        [(email === undefined) ? username : email],
+        (email === undefined) ? 'username' : 'email')).rows === undefined) {
         errorMessage.msg = 'No user with email or username found';
         return res.status(status.notfound).send(errorMessage);
     }
 
-    const {rows, rowCount, error} = await getUserByEmailUsername((email === undefined) ? [username] : [email], (email));
+    const {rows, rowCount, error} = await getUserByVal(
+        (email === undefined) ? [username] : [email],
+        (email === undefined) ? 'username' : 'email'
+    );
+
     if(error){
         errorMessage.msg = error;
         return res.status(status.bad).send(errorMessage);
@@ -79,7 +86,6 @@ const login = async (req, res) => {
         successMessage.token = token;
         return res.status(status.success).send(successMessage);
     }
-
 };
 
 /**
@@ -89,27 +95,23 @@ const login = async (req, res) => {
  * @returns {object} reflection object
  */
 const getUser = async (req, res) => {
-    const {userId} = req.params;
     const token = req.token;
-
-    verify(token, environ.secret, );
-
-    const query = 'SELECT * FROM users WHERE uid=$1';
-    const values = [userId];
-
-    try {
-        const {rows, rowCount} = await pool.query(query, values);
-        if(rowCount === 0) {
-            errorMessage.msg = 'No user returned';
-            return res.status(status.notfound).send(errorMessage);
+    verify(token, environ.secret, async (err, data) => {
+        if(err) {
+            errorMessage.msg = 'Unauthorized - Invalid token';
+            return res.status(status.unauthorized).send(errorMessage);
+        } else {
+            const userId = data.id;
+            const {rows, rowCount, error} = await getUserByVal([userId], 'id');
+            if(error) {
+                errorMessage.msg = error;
+                return res.status(status.error).send(errorMessage);
+            } else {
+                successMessage.data = rows[0];
+                return res.status(status.success).send(successMessage);
+            }
         }
-
-        successMessage.data = rows[0];
-        return res.status(status.success).send(successMessage);
-    } catch (e){
-        errorMessage.msg = e;
-        return res.status(status.bad).send(errorMessage);
-    }
+    });
 }
 
 /**

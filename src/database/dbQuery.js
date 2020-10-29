@@ -1,23 +1,6 @@
 import pool from './pool';
 
 /**
- * Find if user exists
- * @param {Array} values
- * @param {boolean} check -> true for email and false for username
- * @returns {boolean} result
- */
-async function findOneUserEmail(values, check) {
-    let query = 'SELECT * FROM users WHERE ';
-    if(check) {
-        query += 'email=$1';
-    } else {
-        query += 'username=$1';
-    }
-    const {rowCount} = await pool.query(query, values);
-    return rowCount === 0;
-}
-
-/**
  * Insert into users
  * @param {Array} values
  * @returns {object} reflection object
@@ -37,28 +20,40 @@ async function insertUser(values) {
 /**
  * Get user from values
  * @param {Array} values
- * @param {boolean} check
+ * @param {String} key
  * @returns {object} reflection object
  */
-async function getUserByEmailUsername(values, check) {
+async function getUserByVal(values, key) {
     let query = `SELECT * FROM users WHERE `;
-    if(check) {
+    if(key === 'email') {
         query += 'email=$1';
-    } else {
+    } else if (key === 'username') {
         query += 'username=$1';
+    } else if (key === 'id') {
+        query += 'id=$1';
     }
     try{
         const {rows, rowCount} = await pool.query(query, values);
         if (rowCount === 0)
-            return {"error": "Invalid credentials"};
+            return {"error": "User not found"};
         return {"rows":rows, "rowCount":rowCount};
     }catch(e){
         return {"error":e};
     }
 }
 
+/**
+ * Update a user
+ * @param {Array} values
+ * @param {String[]} key
+ * @returns {object} reflection object
+ */
+async function updateUserByKeys(values, key) {
+
+}
+
 export {
-    findOneUserEmail,
     insertUser,
-    getUserByEmailUsername
+    getUserByVal,
+    updateUserByKeys
 }
