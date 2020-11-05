@@ -5,7 +5,7 @@ import pool from './pool';
  * @param {Array} values
  * @returns {object} reflection object
  */
-async function insertUser(values) {
+const insertUser = async values => {
     const query = 'INSERT INTO users ' +
         '(firstname, lastname, email, username, password) VALUES' +
         '($1,$2,$3,$4,$5) RETURNING *';
@@ -15,7 +15,7 @@ async function insertUser(values) {
     } catch(e) {
         return {"error":e};
     }
-}
+};
 
 /**
  * Get user from values
@@ -23,7 +23,7 @@ async function insertUser(values) {
  * @param {String} key
  * @returns {object} reflection object
  */
-async function getUserByVal(values, key) {
+const getUserByVal = async (values, key) => {
     let query = `SELECT * FROM users WHERE `;
     if(key === 'email') {
         query += 'email=$1';
@@ -40,7 +40,7 @@ async function getUserByVal(values, key) {
     }catch(e){
         return {"error":e};
     }
-}
+};
 
 /**
  * Update a user
@@ -48,12 +48,54 @@ async function getUserByVal(values, key) {
  * @param {String[]} key
  * @returns {object} reflection object
  */
-async function updateUserByKeys(values, key) {
+const updateUserByKeys = async (values, key) => {
 
-}
+};
+
+/**
+ * Get all trips
+ * @param {Array} values
+ * @param {String} key
+ * @returns {object} reflection object
+ */
+const findAllTrips = async (values, key) => {
+    let query = 'SELECT * FROM trips WHERE';
+    if(key === 'userId') {
+        query += ' "userId" = $1';
+    } else if (key === 'id') {
+        query += ' "tripId" = $1';
+    }
+
+    try {
+        const {rows, rowCount} = await pool.query(query, values);
+        return {"rows":rows, "rowCount":rowCount};
+    } catch(e) {
+        return {"error": e};
+    }
+};
+
+/**
+ * Insert new trip
+ * @param {Array} values
+ * @returns {object} reflection object
+ */
+const insertTrip = async values => {
+    const query = 'INSERT INTO trips ' +
+        '(userId, name, origin, destination, tripDate) VALUES' +
+        '($1, $2, $3, $4, $5) RETURNING *';
+
+    try {
+        const {rows, rowCount} = await pool.query(query, values);
+        return {"rows":rows, "rowCount": rowCount};
+    }catch(e) {
+        return {"error":e};
+    }
+};
 
 export {
     insertUser,
     getUserByVal,
-    updateUserByKeys
+    updateUserByKeys,
+    findAllTrips,
+    insertTrip
 }

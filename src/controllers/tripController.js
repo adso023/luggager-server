@@ -2,7 +2,9 @@ import moment from 'moment';
 import pool from '../database/pool';
 import { errorMessage, status, successMessage } from '../helpers/status';
 import { isEmpty, dateIsPast } from '../helpers/validations';
-
+import {verify} from 'jsonwebtoken';
+import environ from '../../env';
+import {findAllTrips, insertTrip} from "../database/dbQuery";
 
 
 /**
@@ -12,42 +14,39 @@ import { isEmpty, dateIsPast } from '../helpers/validations';
  * @returns {object} reflection object
  */
 const addNewTrip = async (req, res) => {
-    const {name, origin, destination, tripDate} = req.body;
-    const {userId} = req.params;
+    const token = req.token;
 
-    if(isEmpty(name) || isEmpty(origin) || isEmpty(destination) || isEmpty(tripDate)) {
-        errorMessage.msg = 'One or more fields are empty';
-        return res.status(status.error).send(errorMessage);
-    }
+    verify(token, environ.secret, async (err, data) => {
+        if(err) {
+            errorMessage.msg = err;
+            return res.status(status.unauthorized).send(errorMessage);
+        } else {
+            const id = data.id;
+            const {name, origin, destination, tripDate} = req.body;
 
-    if (isNaN(Date.parse(tripDate)) || dateIsPast(Date.parse(tripDate))) {
-        errorMessage.msg = 'Invalid Date - either not a date or date given is in the past';
-        return res.status(status.bad).send(errorMessage);
-    }
+            if(isEmpty(name) || isEmpty(origin) || isEmpty(destination) || isEmpty(tripDate)) {
+                errorMessage.msg = 'Single/Multiple fields are empty';
+                return res.status(status.bad).send(errorMessage);
+            }
 
-    const momentDate = moment(Date.parse(tripDate));
-    const query = `INSERT INTO trips 
-    (userid, name, origin, destination, tripDate) 
-    VALUES ($1,$2,$3,$4,$5) RETURNING id, userid`;
-    const values = [userId, name, origin, destination, momentDate];
+            if(isNaN(Date.parse(tripDate)) || dateIsPast(Date.parse(tripDate))) {
+                errorMessage.msg = 'Invalid Date';
+                return res.status(status.bad).send(errorMessage);
+            }
 
-    try {
-        const {rows, rowCount} = await pool.query(query, values);
-        if(rowCount === 0) {
-            return res.status(status.bad).send(errorMessage);
+            const momentDate = moment(Date.parse(tripDate));
+
+            const {rows, rowCount, error} = await insertTrip([id, name, origin, destination, momentDate]);
+            if(error) {
+                errorMessage.msg = error;
+                return res.status(status.error).send(errorMessage);
+            } else {
+                successMessage.data = rows[0];
+                return res.status(status.success).send(successMessage);
+            }
         }
-        successMessage.data = rows[0];
-        errorMessage.msg = 'Nothing was created';
-        return res.status(status.created).send(successMessage);
-    } catch(error) {
-        /**
-         * error.routine: {ExecConstraints, DateTimeParseError}
-         */
-        errorMessage.msg = error;
-        return res.status(status.error).send(errorMessage);
-    }
+    });
 }
-
 
 /**
  * Get trips
@@ -56,23 +55,25 @@ const addNewTrip = async (req, res) => {
  * @returns {object} reflection object
  */
 const getAllTrips = async (req, res) => {
-    const {userId} = req.params;
-    const query = `SELECT * FROM trips WHERE userid=${userId}`;
+    const token = req.token;
 
-    try {
-        const {rows, rowCount} = await pool.query(query);
-
-        if(rowCount === 0) {
-            errorMessage.msg = 'No content found';
-            return res.status(status.notfound).send(errorMessage);
+    verify(token, environ.secret, async (err, data) => {
+        if(err) {
+            errorMessage.msg = err;
+            return res.status(status.unauthorized).send(errorMessage);
+        } else {
+            const {id} = data;
+            const {rows, rowCount, error} = await findAllTrips([id], 'userId');
+            if(error) {
+                console.log(`Error ${error}`);
+                errorMessage.msg = error;
+                return res.status(status.notfound).send(errorMessage);
+            } else {
+                successMessage.data = rows;
+                return res.status(status.success).send(successMessage);
+            }
         }
-
-        successMessage.data = rows;
-        return res.status(status.success).send(successMessage);
-    }catch(error) {
-        errorMessage.msg = error;
-        return res.status(status.error).send(errorMessage);
-    }
+    });
 }
 
 /**
@@ -82,17 +83,22 @@ const getAllTrips = async (req, res) => {
  * @returns {object} reflection object
  */
 const getSpecificTrip = async (req, res) => {
-    const {userId, tripId} = req.params;
-    const query = `SELECT * FROM trips WHERE id=${tripId} AND userid=${userId}`;
+    const token = req.token;
 
-    try{
-        const {rows} = await pool.query(query);
-        successMessage.data = rows[0];
-        return res.status(status.success).send(successMessage);
-    }catch(error){
-        errorMessage.msg = error;
-        return res.status(status.error).send(errorMessage);
-    }
+    verify(token, environ.secret, async (err, data) => {
+        
+    });
+    // const {userId, tripId} = req.params;
+    // const query = `SELECT * FROM trips WHERE id=${tripId} AND userid=${userId}`;
+    //
+    // try{
+    //     const {rows} = await pool.query(query);
+    //     successMessage.data = rows[0];
+    //     return res.status(status.success).send(successMessage);
+    // }catch(error){
+    //     errorMessage.msg = error;
+    //     return res.status(status.error).send(errorMessage);
+    // }
 }
 
 /**
