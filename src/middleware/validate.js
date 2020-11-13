@@ -8,7 +8,7 @@ import { errorMessage, status, successMessage } from '../helpers/status';
  */
 const checkToken = async (req, res, next) => {
     const headers = req.headers['authorization'];
-    if(typeof headers !== undefined) {
+    if(headers) {
         const [Bearer, jwt] = headers.split(' ');
         req.token = jwt;
         next();

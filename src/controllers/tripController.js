@@ -15,7 +15,6 @@ import {findAllTrips, insertTrip} from "../database/dbQuery";
  */
 const addNewTrip = async (req, res) => {
     const token = req.token;
-
     verify(token, environ.secret, async (err, data) => {
         if(err) {
             errorMessage.msg = err;
@@ -23,8 +22,8 @@ const addNewTrip = async (req, res) => {
         } else {
             const id = data.id;
             const {name, origin, destination, tripDate} = req.body;
-
-            if(isEmpty(name) || isEmpty(origin) || isEmpty(destination) || isEmpty(tripDate)) {
+            // 0
+            if(isEmpty(name) || origin === {} || destination === {} || isEmpty(tripDate)) {
                 errorMessage.msg = 'Single/Multiple fields are empty';
                 return res.status(status.bad).send(errorMessage);
             }
@@ -34,7 +33,7 @@ const addNewTrip = async (req, res) => {
                 return res.status(status.bad).send(errorMessage);
             }
 
-            const momentDate = moment(Date.parse(tripDate));
+            const momentDate = moment(Date.parse(tripDate)).utc();
 
             const {rows, rowCount, error} = await insertTrip([id, name, origin, destination, momentDate]);
             if(error) {
@@ -56,7 +55,6 @@ const addNewTrip = async (req, res) => {
  */
 const getAllTrips = async (req, res) => {
     const token = req.token;
-
     verify(token, environ.secret, async (err, data) => {
         if(err) {
             errorMessage.msg = err;
@@ -69,6 +67,7 @@ const getAllTrips = async (req, res) => {
                 errorMessage.msg = error;
                 return res.status(status.notfound).send(errorMessage);
             } else {
+                console.log(`getAllTrips ${rows}`);
                 successMessage.data = rows;
                 return res.status(status.success).send(successMessage);
             }

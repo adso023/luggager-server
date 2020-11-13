@@ -15,6 +15,7 @@ const isValidEmail = (email) => {
  * @returns {Boolean} True or False
  */
 const isEmpty = (input) => {
+    console.log(`Input ${input}`);
     if (input === undefined || input === '') {
         return true;
     }
@@ -22,6 +23,7 @@ const isEmpty = (input) => {
     if (input.replace(/\s/g, '').length) {
         return false;
     }
+
     return true;
 };
 

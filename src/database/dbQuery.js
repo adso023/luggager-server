@@ -81,9 +81,8 @@ const findAllTrips = async (values, key) => {
  */
 const insertTrip = async values => {
     const query = 'INSERT INTO trips ' +
-        '(userId, name, origin, destination, tripDate) VALUES' +
+        '("userId", name, origin, destination, tripDate) VALUES' +
         '($1, $2, $3, $4, $5) RETURNING *';
-
     try {
         const {rows, rowCount} = await pool.query(query, values);
         return {"rows":rows, "rowCount": rowCount};
