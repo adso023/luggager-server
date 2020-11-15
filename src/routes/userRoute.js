@@ -6,7 +6,7 @@ const router = express.Router();
 
 //Test if endpoint is working
 router.get('/helloWorld', function (req, res, _) {
-    res.send('hello world');
+    res.json({data: "Hello World"})
 });
 
 /**
