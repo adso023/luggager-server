@@ -25,8 +25,8 @@ const createUser = async (req, res) => {
         return res.status(status.bad).send(errorMessage);
     }
 
-    if((await getUserByVal([email], 'email').rows) === undefined
-        || (await getUserByVal([username], 'username')).rows === undefined) {
+    if((await getUserByVal([email], 'email').rows) !== undefined
+        || (await getUserByVal([username], 'username')).rows !== undefined) {
         errorMessage.msg = "Duplicate user found";
         return res.status(status.bad).send(errorMessage);
     }
